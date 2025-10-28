@@ -33,6 +33,7 @@ interface AccountCardProps {
                   Public Key
                 </label>
                 <button
+                  type="button"
                   onClick={onFund}
                   disabled={!!account.balances}
                   className={`px-4 py-1.5 text-sm rounded-lg font-medium transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer ${fundButtonBg}`}

@@ -1,14 +1,16 @@
 import { IAccount } from "../interfaces/account";
-import { createContext, useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useState, useMemo } from "react";
 import { use } from "react";
 import { getCurrentAccountFromStorage, saveCurrentAccount, getAccountFromStorage } from "../utils/localStorage";
 
 interface StellarContextType {
-    currentAccount: string;
-    setCurrentAccount: (name: string) => void;
-    getAccount: (name: string) => IAccount | null;
-    getCurrentAccountData: () => IAccount | null;
-  }
+  currentAccount: string;
+  hashId: string;
+  setHashId: React.Dispatch<React.SetStateAction<string>>;
+  setCurrentAccount: (name: string) => void;
+  getAccount: (name: string) => IAccount | null;
+  getCurrentAccountData: () => IAccount | null;
+}
   
   const StellarAccountContext = createContext<StellarContextType | undefined>(
     undefined
@@ -27,6 +29,9 @@ interface StellarContextType {
   export const StellarAccountProvider: React.FC<{
     children: React.ReactNode;
   }> = ({ children }) => {
+
+    const [hashId, setHashId] = useState<string>("");
+    
     const [currentAccount, setCurrentAccountState] = useState<string>(() =>
       getCurrentAccountFromStorage()
     );
@@ -46,13 +51,16 @@ interface StellarContextType {
     }, [currentAccount]);
   
     const value: StellarContextType = {
-      currentAccount,
-      setCurrentAccount,
-      getAccount,
-      getCurrentAccountData,
-    };
-  
+    currentAccount,
+    hashId,
+    setHashId,
+    setCurrentAccount,
+    getAccount,
+    getCurrentAccountData,
+  };
     return (
-      <StellarAccountContext value={value}>{children}</StellarAccountContext>
+      <StellarAccountContext.Provider value={value}>
+        {children}
+      </StellarAccountContext.Provider>
     );
   };
