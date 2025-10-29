@@ -1,6 +1,6 @@
 #![no_std]
 
 mod contract;
-mod interface;
+mod interfaces;
 
 pub use contract::RentACarContract;
