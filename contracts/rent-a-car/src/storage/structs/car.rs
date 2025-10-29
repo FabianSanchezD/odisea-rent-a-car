@@ -9,4 +9,5 @@ pub struct Car {
     // cuando es u es unsigned, solo positivos
     // realmente considero que aquí podemos poner u128, porque el precio nunca sera negativo
     pub car_status: CarStatus,
+    pub available_to_withdraw: i128,
 }
