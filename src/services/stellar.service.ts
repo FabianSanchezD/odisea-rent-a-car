@@ -4,6 +4,8 @@ import { IKeypair } from "../interfaces/keypair";
 import { IAccountBalanceResponse } from "../interfaces/balance";
 import { AccountBalance } from "../interfaces/account";
 
+type BuiltTransaction = ReturnType<TransactionBuilder["build"]>;
+
 export class StellarService {
   private server: Horizon.Server;
   private network: string;
@@ -82,7 +84,7 @@ private async loadAccount(address: string): Promise<Horizon.AccountResponse> {
   }
 }
 
-private async checkTrustline(
+  private async checkTrustline(
     assetIssuer: string,
     assetCode: string,
     destinationPubKey: string
@@ -95,14 +97,16 @@ private async checkTrustline(
       if ("asset_code" in balance) {
         const asset = new Asset(balance.asset_code, balance.asset_issuer);
 
-        if (asset.equals(assetToVerify)) return true;
+        if (asset.equals(assetToVerify)) {
+          return true;
+        }
       }
     }
 
     return false;
-}
-  
-createTrustlineOperation(
+  }
+
+  private createTrustlineOperation(
     asset: Asset,
     source: string,
     amount: string
@@ -114,7 +118,66 @@ createTrustlineOperation(
       source,
       limit: assetLimit.toString(),
     });
-}
+  }
+
+  private getAsset(assetCode: string, assetIssuer: string): Asset {
+    if (assetCode === "XLM") {
+      return Asset.native();
+    }
+
+    return new Asset(assetCode, assetIssuer);
+  }
+
+  private transactionBuilder(
+    sourceAccount: Horizon.AccountResponse
+  ): TransactionBuilder {
+    return new TransactionBuilder(sourceAccount, {
+      fee: BASE_FEE,
+      networkPassphrase: this.networkPassphrase,
+    });
+  }
+
+  private createPaymentOperation(
+    amount: string,
+    asset: Asset,
+    destination: string
+  ): xdr.Operation<Operation.Payment> {
+    return Operation.payment({
+      destination,
+      asset,
+      amount,
+    });
+  }
+
+  private async submitTransaction(
+    transaction: BuiltTransaction
+  ): Promise<Horizon.HorizonApi.SubmitTransactionResponse> {
+    try {
+      return await this.server.submitTransaction(transaction);
+    } catch (error: any) {
+      console.error(error);
+
+      if (error?.response?.data?.extras?.result_codes) {
+        console.error(
+          "Transaction failed:",
+          error.response.data.extras.result_codes
+        );
+      }
+
+      throw error;
+    }
+  }
+
+  private getAssetIssuer(
+    assetCode: string,
+    fallbackIssuer: string
+  ): string {
+    if (assetCode === "XLM") {
+      return fallbackIssuer;
+    }
+
+    return fallbackIssuer;
+  }
 
 async payment(
     senderPubKey: string,
@@ -131,22 +194,22 @@ async payment(
     const asset = this.getAsset(assetCode, receiverPubKey);
     const transactionBuilder = this.transactionBuilder(sourceAccount);
     
-    if (asset.code !== "XLM" && asset.issuer !== receiverPubKey) {
-      hasTrustline = await this.checkTrustline(
-        receiverPubKey,
-        assetCode,
-        asset.issuer
-      );
+    // if (asset.code !== "XLM" && asset.issuer !== receiverPubKey) {
+    //   hasTrustline = await this.checkTrustline(
+    //     receiverPubKey,
+    //     assetCode,
+    //     asset.issuer
+    //   );
 
-      if (!hasTrustline) {
-        const changeTrustOp = this.createTrustlineOperation(
-          asset,
-          receiverPubKey,
-          amount
-        );
-        transactionBuilder.addOperation(changeTrustOp);
-      }
-    }
+    //   if (!hasTrustline) {
+    //     const changeTrustOp = this.createTrustlineOperation(
+    //       asset,
+    //       receiverPubKey,
+    //       amount
+    //     );
+    //     transactionBuilder.addOperation(changeTrustOp);
+    //   }
+    // }
 
     const paymentOperation = this.createPaymentOperation(
       amount,
@@ -160,14 +223,13 @@ async payment(
 
     transaction.sign(sourceKeypair);
 
-    if (!hasTrustline) {
-      const recieveKeypair = Keypair.fromSecret(receiverSecret);
-      transaction.sign(recieveKeypair);
-    }
+    // if (!hasTrustline) {
+    //   const recieveKeypair = Keypair.fromSecret(receiverSecret);
+    //   transaction.sign(recieveKeypair);
+    // }
 
     return await this.submitTransaction(transaction);
   }
-
   async createAsset(
     issuerSecret: string,
     distributorSecret: string,

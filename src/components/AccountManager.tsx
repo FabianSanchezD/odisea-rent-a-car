@@ -113,20 +113,21 @@ export default function AccountManager() {
               </span>
             </button>
 
-            // <button
+            <button
 	onClick={assetModal.openModal}
 	className="group px-6 py-3 bg-orange-600 text-white font-semibold rounded-xl shadow-lg hover:bg-orange-700 hover:shadow-xl disabled:bg-slate-300 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:transform-none cursor-pointer"
 >
 	<span className="flex items-center gap-2">Create Asset</span>
 </button>
-          </div>
-
-          <button
+<button
 	  onClick={paymentModal.openModal}
 	  className="group px-6 py-3 bg-purple-600 text-white font-semibold rounded-xl shadow-lg hover:bg-purple-700 hover:shadow-xl disabled:bg-slate-300 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:transform-none cursor-pointer"
    >
 	    <span className="flex items-center gap-2">Send Payment</span>
    </button>
+          </div>
+
+          
   
           <div className="grid lg:grid-cols-2 gap-8">
             {bobAccount && (
