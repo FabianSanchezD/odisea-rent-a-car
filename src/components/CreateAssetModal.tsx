@@ -1,16 +1,14 @@
 import { useState } from "react";
 import Modal from "./Modal";
 import { IAccount } from "../interfaces/account";
-import { stellarService } from "../services/stellar.service";
 import { useStellarAccounts } from "../providers/StellarAccountProvider";
+import { stellarService } from "../services/stellar.service";
 
-interface PaymentModalProps {
+interface ICreateModalProps {
   closeModal: () => void;
   getAccount: (name: string) => IAccount | null;
   onPaymentSuccess: () => Promise<void>;
 }
-
-
 
 export interface PaymentFormData {
   sourceAccount: string;
@@ -18,19 +16,21 @@ export interface PaymentFormData {
   amount: string;
 }
 
-function PaymentModal({
+
+function CreateAssetModal({
   closeModal,
   getAccount,
   onPaymentSuccess,
-}: PaymentModalProps) {
+}: ICreateModalProps) {
   const [sourceAccount, setSourceAccount] = useState<IAccount | null>(null);
   const [destinationAccount, setDestinationAccount] = useState<IAccount | null>(
     null
   );
+  const [assetCode, setAssetCode] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-	const { setHashId } = useStellarAccounts();
-	
+  const { setHashId } = useStellarAccounts();
+
   const accountNames = ["bob", "alice"];
   const availableAccounts: IAccount[] = accountNames
     .map((name) => getAccount(name))
@@ -43,36 +43,32 @@ function PaymentModal({
     );
     return name ? name.charAt(0).toUpperCase() + name.slice(1) : "Unknown";
   };
-
+  
+  
   const handleSubmit = async () => {
-    if (!sourceAccount || !destinationAccount || !amount) {
+    if (!sourceAccount || !assetCode || !amount || !destinationAccount) {
       alert("Please fill all fields");
-      return;
-    }
-
-    if (sourceAccount === destinationAccount) {
-      alert("Source and destination accounts must be different");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const response = await stellarService.payment(
-        sourceAccount.publicKey,
+      const response = await stellarService.createAsset(
         sourceAccount.secretKey,
-        destinationAccount.publicKey,
+        destinationAccount.secretKey,
+        assetCode,
         amount
       );
-
-      console.log("Payment successful:", response);
-      setHashId(response.hash);
 
       if (onPaymentSuccess) {
         await onPaymentSuccess();
       }
 
+      setHashId(response.hash);
+
       setSourceAccount(null);
       setDestinationAccount(null);
+      setAssetCode("");
       setAmount("");
       closeModal();
     } catch (error) {
@@ -84,7 +80,7 @@ function PaymentModal({
   };
 
   return (
-    <Modal title="Send Payment" closeModal={closeModal}>
+    <Modal title="Create Asset" closeModal={closeModal}>
       <div className="p-4 md:p-5 space-y-5">
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -111,20 +107,20 @@ function PaymentModal({
 
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">
-            Amount (XLM)
+            Asset Code
           </label>
           <input
             type="text"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.00"
+            value={assetCode}
+            onChange={(e) => setAssetCode(e.target.value)}
+            placeholder="USDC"
             className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors font-mono text-lg"
           />
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">
-            Destination Account
+            Destionation Account
           </label>
           <select
             value={destinationAccount?.publicKey || ""}
@@ -145,6 +141,19 @@ function PaymentModal({
           </select>
         </div>
 
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 mb-2">
+            Amount to Mint
+          </label>
+          <input
+            type="text"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="0.00"
+            className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors font-mono text-lg"
+          />
+        </div>
+
         <div className="flex gap-3 pt-4">
           <button
             type="button"
@@ -160,7 +169,7 @@ function PaymentModal({
             disabled={isSubmitting}
             className="flex-1 px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
-            {isSubmitting ? "Sending..." : "Send Payment"}
+            {isSubmitting ? "Creating..." : "Create Asset"}
           </button>
         </div>
       </div>
@@ -168,4 +177,4 @@ function PaymentModal({
   );
 }
 
-export default PaymentModal;
+export default CreateAssetModal;

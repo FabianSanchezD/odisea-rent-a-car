@@ -7,11 +7,13 @@ import AccountCard from "./AccountCard";
 import useModal from "../hooks/useModal";
 import PaymentModal from "./PaymentModal";
 import StellarExpertLink from "./StellarExpertLink";
+import CreateAssetModal from "./CreateAssetModal";
 
 export default function AccountManager() {
     const [, forceUpdate] = useState({});
     const { getAccount, hashId } = useStellarAccounts();
-const paymentModal = useModal();
+    const paymentModal = useModal();
+    const assetModal = useModal();
   
     const bobAccount = getAccount("bob");
     const aliceAccount = getAccount("alice");
@@ -110,6 +112,13 @@ const paymentModal = useModal();
                 Create Account for Alice
               </span>
             </button>
+
+            // <button
+	onClick={assetModal.openModal}
+	className="group px-6 py-3 bg-orange-600 text-white font-semibold rounded-xl shadow-lg hover:bg-orange-700 hover:shadow-xl disabled:bg-slate-300 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 disabled:transform-none cursor-pointer"
+>
+	<span className="flex items-center gap-2">Create Asset</span>
+</button>
           </div>
 
           <button
@@ -176,6 +185,13 @@ const paymentModal = useModal();
           onPaymentSuccess={refreshAccountBalances}
         />
   )}
+  {assetModal.showModal && (
+	<CreateAssetModal
+		closeModal={assetModal.closeModal}
+		getAccount={getAccount}
+		onPaymentSuccess={refreshAccountBalances}
+	/>
+)}
   {hashId && <StellarExpertLink url={hashId} />}
       </div>
     );
