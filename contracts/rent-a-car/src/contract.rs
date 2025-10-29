@@ -9,13 +9,17 @@ pub const TOKEN_KEY: &Symbol = &symbol_short!("TOKEN");
 
 #[contractimpl]
 impl RentACarContractTrait for RentACarContract {
-    // fn __constructor(env: &Env, admin: Address, token: Address) {
+    fn __constructor(env: &Env, admin: Address, token: Address) {
+        env.storage().instance().set(ADMIN_KEY, &admin);
+        env.storage().instance().set(TOKEN_KEY, &token);
+    }
+
+    // fn initialize(env: &Env, admin: Address, token: Address) {
     //     env.storage().instance().set(ADMIN_KEY, &admin);
     //     env.storage().instance().set(TOKEN_KEY, &token);
     // }
 
-    fn initialize(env: &Env, admin: Address, token: Address) {
-        env.storage().instance().set(ADMIN_KEY, &admin);
-        env.storage().instance().set(TOKEN_KEY, &token);
+    fn get_admin(env: &Env) -> Address {
+        env.storage().instance().get(ADMIN_KEY).unwrap()
     }
 }
