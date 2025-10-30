@@ -18,3 +18,12 @@ pub fn test_remove_car_deletes_from_storage() {
         has_car(&env, &owner)
     }));
 }
+
+#[test]
+#[should_panic(expected = "Error(Contract, #2)")]
+pub fn test_remove_car_not_found_fails() {
+    let ContractTest { env, contract, .. } = ContractTest::setup();
+    let owner = Address::generate(&env);
+    
+    contract.remove_car(&owner);
+}
