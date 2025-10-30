@@ -1,5 +1,6 @@
-use soroban_sdk::{contract, contractimpl, Address, Env};
+use soroban_sdk::{Address, Env, contract, contractimpl};
 
+use crate::events;
 use crate::interfaces::contract::RentACarContractTrait;
 use crate::storage::{
     admin::{read_admin, write_admin, has_admin},
@@ -28,6 +29,7 @@ impl RentACarContractTrait for RentACarContract {
 
         write_admin(env, &admin);
         write_token(env, &token);
+        events::contract::contract_initialized(env, admin, token);
 
         Ok(())
     }
@@ -59,6 +61,8 @@ impl RentACarContractTrait for RentACarContract {
         };
 
         write_car(env, &owner, &car);
+
+        events::add_car::car_added(env, owner, price_per_day);
         Ok(())
     }
 
@@ -113,6 +117,7 @@ impl RentACarContractTrait for RentACarContract {
         write_rental(env, &renter, &owner, &rental);
 
         token_transfer(&env, &renter, &env.current_contract_address(), &amount);
+        events::rental::rented(env, renter, owner, total_days_to_rent, amount);
         Ok(())
     }
 
@@ -147,6 +152,7 @@ impl RentACarContractTrait for RentACarContract {
         write_contract_balance(&env, &contract_balance);
 
         token_transfer(&env, &env.current_contract_address(), &owner, &amount);
+        events::payout_owner::payout(env, owner, amount);
         Ok(())
     }
 
@@ -158,6 +164,7 @@ impl RentACarContractTrait for RentACarContract {
         }
 
         remove_car(env, &owner);
+        events::remove_car::car_removed(env, owner);
         Ok(())
     }
 }
