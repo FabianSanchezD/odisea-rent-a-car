@@ -5,6 +5,8 @@ use crate::{storage::{car::read_car, types::car_status::CarStatus}, tests::confi
 pub fn test_add_car_successfully() {
     let ContractTest { env, contract, .. } = ContractTest::setup();
 
+    env.mock_all_auths();
+
     let owner = Address::generate(&env);
     let price_per_day = 1500_i128;
 
@@ -23,6 +25,9 @@ pub fn test_add_car_successfully() {
 #[should_panic(expected = "Error(Contract, #6)")]
 pub fn test_add_car_with_zero_price_fails() {
     let ContractTest { contract, env, .. } = ContractTest::setup();
+
+    env.mock_all_auths();
+
     let owner = Address::generate(&env);
     let price_per_day = 0_i128;
     
@@ -33,6 +38,9 @@ pub fn test_add_car_with_zero_price_fails() {
 #[should_panic(expected = "Error(Contract, #6)")]
 pub fn test_add_car_with_negative_price_fails() {
     let ContractTest { contract, env, .. } = ContractTest::setup();
+    
+    env.mock_all_auths();
+
     let owner = Address::generate(&env);
     let price_per_day = -100_i128;
     
@@ -43,6 +51,9 @@ pub fn test_add_car_with_negative_price_fails() {
 #[should_panic(expected = "Error(Contract, #4)")]
 pub fn test_add_car_already_exists_fails() {
     let ContractTest { contract, env, .. } = ContractTest::setup();
+    
+    env.mock_all_auths();
+    
     let owner = Address::generate(&env);
     let price_per_day = 1500_i128;
     

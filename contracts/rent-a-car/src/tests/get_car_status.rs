@@ -5,6 +5,8 @@ use crate::{storage::{types::car_status::CarStatus}, storage::car::{has_car}, te
 pub fn test_get_car_status_returns_available() {
     let ContractTest { env, contract, .. } = ContractTest::setup();
 
+    env.mock_all_auths();
+
     let owner = Address::generate(&env);
     let price_per_day = 1500_i128;
 

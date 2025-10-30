@@ -5,7 +5,7 @@ use crate::{storage::{car::read_car, contract_balance::read_contract_balance, re
 pub fn test_rental_car_successfully() {
     let ContractTest { env, contract, token, .. } = ContractTest::setup();
 
-    env.mock_all_auths();
+    env.mock_all_auths(); //auth tested on auth/ other files
 
     let owner = Address::generate(&env);
     let renter = Address::generate(&env);

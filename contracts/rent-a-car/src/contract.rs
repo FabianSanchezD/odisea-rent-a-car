@@ -42,6 +42,8 @@ impl RentACarContractTrait for RentACarContract {
     }
 
     fn add_car(env: &Env, owner: Address, price_per_day: i128) -> Result<(), Error> {
+        let admin = read_admin(env);
+        admin.require_auth();
         if price_per_day <= 0 {
             return Err(Error::AmountMustBePositive);
         }
@@ -149,6 +151,8 @@ impl RentACarContractTrait for RentACarContract {
     }
 
     fn remove_car(env: &Env, owner: Address) -> Result<(), Error> {
+        let admin = read_admin(env);
+        admin.require_auth();
         if !has_car(env, &owner) {
             return Err(Error::CarNotFound);
         }

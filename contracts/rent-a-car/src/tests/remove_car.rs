@@ -5,6 +5,8 @@ use crate::{storage::{car::has_car}, tests::config::contract::ContractTest};
 pub fn test_remove_car_deletes_from_storage() {
     let ContractTest { env, contract, .. } = ContractTest::setup();
 
+    env.mock_all_auths();
+
     let owner = Address::generate(&env);
     let price_per_day = 1500_i128;
 
@@ -23,6 +25,9 @@ pub fn test_remove_car_deletes_from_storage() {
 #[should_panic(expected = "Error(Contract, #2)")]
 pub fn test_remove_car_not_found_fails() {
     let ContractTest { env, contract, .. } = ContractTest::setup();
+
+    env.mock_all_auths();
+
     let owner = Address::generate(&env);
     
     contract.remove_car(&owner);
