@@ -1,9 +1,8 @@
-use soroban_sdk::{Address, Env, contract, contractimpl};
+use soroban_sdk::{Address, Env, contract, contractimpl, events};
 
-use crate::events;
 use crate::interfaces::contract::RentACarContractTrait;
 use crate::storage::{
-    admin::{read_admin, write_admin, has_admin},
+    admin::{read_admin, write_admin, has_admin, write_commission, read_commission},
     car::{read_car, write_car, remove_car, has_car},
     rental::write_rental,
     structs::{car::Car, rental::Rental},
@@ -29,7 +28,7 @@ impl RentACarContractTrait for RentACarContract {
 
         write_admin(env, &admin);
         write_token(env, &token);
-        events::contract::contract_initialized(env, admin, token);
+        crate::events::contract::contract_initialized(env, admin, token);
 
         Ok(())
     }
@@ -62,7 +61,7 @@ impl RentACarContractTrait for RentACarContract {
 
         write_car(env, &owner, &car);
 
-        events::add_car::car_added(env, owner, price_per_day);
+        crate::events::add_car::car_added(env, owner, price_per_day);
         Ok(())
     }
 
@@ -117,7 +116,7 @@ impl RentACarContractTrait for RentACarContract {
         write_rental(env, &renter, &owner, &rental);
 
         token_transfer(&env, &renter, &env.current_contract_address(), &amount);
-        events::rental::rented(env, renter, owner, total_days_to_rent, amount);
+        crate::events::rental::rented(env, renter, owner, total_days_to_rent, amount);
         Ok(())
     }
 
@@ -152,7 +151,29 @@ impl RentACarContractTrait for RentACarContract {
         write_contract_balance(&env, &contract_balance);
 
         token_transfer(&env, &env.current_contract_address(), &owner, &amount);
-        events::payout_owner::payout(env, owner, amount);
+        crate::events::payout_owner::payout(env, owner, amount);
+        Ok(())
+    }
+
+    fn payout_admin(env: &Env, admin: Address, amount: i128) -> Result<(), Error> {
+        admin.require_auth();
+
+        if amount <= 0 {
+            return Err(Error::AmountMustBePositive);
+        }
+
+        let mut available_commision = read_commission(&env);
+
+        if amount > read_commission(&env) {
+            return Err(Error::InsufficientBalance);
+        }
+
+        available_commision -= amount;
+
+        write_commission(&env, available_commision);
+
+        token_transfer(&env, &env.current_contract_address(), &admin, &amount);
+        crate::events::payout_admin::payout(env, admin, amount);
         Ok(())
     }
 
@@ -164,7 +185,6 @@ impl RentACarContractTrait for RentACarContract {
         }
 
         remove_car(env, &owner);
-        events::remove_car::car_removed(env, owner);
         Ok(())
     }
 }

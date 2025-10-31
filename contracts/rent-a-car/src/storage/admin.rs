@@ -21,13 +21,13 @@ pub(crate) fn write_admin(env: &Env, admin: &Address) {
     env.storage().instance().set(&key, admin);
 }
 
-pub(crate) fn write_commission(env: &Env, commission: u32) {
+pub(crate) fn write_commission(env: &Env, commission: i128) {
     let key = DataKey::AdminCommission;
 
     env.storage().instance().set(&key, &commission);
 }
 
-pub(crate) fn read_commision(env: &Env) -> u32 {
+pub(crate) fn read_commission(env: &Env) -> i128 {
     let key = DataKey::AdminCommission;
 
     env.storage().instance().get(&key).unwrap() // para que si no hay valor, retorne 0
