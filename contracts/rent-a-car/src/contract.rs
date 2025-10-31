@@ -139,6 +139,11 @@ impl RentACarContractTrait for RentACarContract {
 
         let mut car = read_car(&env, &owner);
 
+        // valida que el usuario no pueda hacer payout si el carro sigue rentado
+        if car.car_status == CarStatus::Rented {
+            return Err(Error::CannotPayoutWhileCarIsRented)
+        }
+
         if amount > car.available_to_withdraw {
             return Err(Error::InsufficientBalance);
         }

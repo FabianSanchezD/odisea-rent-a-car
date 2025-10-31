@@ -17,4 +17,5 @@ pub enum Error {
     RentalDurationCannotBeZero = 10,
     SelfRentalNotAllowed = 11,
     CarAlreadyRented = 12,
+    CannotPayoutWhileCarIsRented = 13 // nuevo error, para validacion en payout_owner
 }
