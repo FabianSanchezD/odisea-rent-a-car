@@ -1,4 +1,4 @@
-use soroban_sdk::{Address, Env, contract, contractimpl, events};
+use soroban_sdk::{Address, Env, contract, contractimpl};
 
 use crate::interfaces::contract::RentACarContractTrait;
 use crate::storage::{
@@ -73,6 +73,15 @@ impl RentACarContractTrait for RentACarContract {
         let car = read_car(env, &owner);
 
         Ok(car.car_status)
+    }
+
+    fn get_available_withdraw_payowner(env: &Env, owner: Address) -> Result<i128, Error> {
+        if !has_car(env, &owner) {
+            return Err(Error::CarNotFound);
+        }
+
+        let car = read_car(env, &owner);
+        Ok(car.available_to_withdraw)
     }
 
     fn rental(env: &Env, renter: Address, owner: Address, total_days_to_rent: u32, amount: i128) -> Result<(), Error>{
