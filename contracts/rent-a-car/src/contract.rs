@@ -108,10 +108,16 @@ impl RentACarContractTrait for RentACarContract {
             amount,
         };
 
+        let commission = (amount / 100) * 2; // 2% de comisión por cada rental
+
         let mut contract_balance = read_contract_balance(&env);
-        contract_balance += amount;
+        let mut admin_commission = read_commission(&env);
+
+        contract_balance += amount - commission;
+        admin_commission += commission;
         
         write_contract_balance(&env, &contract_balance);
+        write_commission(&env, admin_commission);
         write_car(env, &owner, &car);
         write_rental(env, &renter, &owner, &rental);
 
