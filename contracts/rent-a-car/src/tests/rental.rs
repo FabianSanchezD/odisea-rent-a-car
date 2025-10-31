@@ -28,7 +28,7 @@ pub fn test_rental_car_successfully() {
     let contract_events = get_contract_events(&env, &contract.address);
 
     let updated_contract_balance = env.as_contract(&contract.address, || read_contract_balance(&env));
-    assert_eq!(updated_contract_balance, amount);
+    assert_eq!(updated_contract_balance, amount - (amount/100)*2);
 
     let car = env.as_contract(&contract.address, || read_car(&env, &owner));
     assert_eq!(car.car_status, CarStatus::Rented);

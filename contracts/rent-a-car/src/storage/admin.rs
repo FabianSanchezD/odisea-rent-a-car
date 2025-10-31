@@ -30,6 +30,7 @@ pub(crate) fn write_commission(env: &Env, commission: i128) {
 pub(crate) fn read_commission(env: &Env) -> i128 {
     let key = DataKey::AdminCommission;
 
-    env.storage().instance().get(&key).unwrap() // para que si no hay valor, retorne 0
+    env.storage().instance().get(&key).unwrap_or(0) // para que si no hay valor, retorne 0
     // cambiarlo porque en el modulo de scout audit vimos que esto no es seguro
+    // resuelto (creo)
 }

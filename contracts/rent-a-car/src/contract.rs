@@ -205,6 +205,7 @@ impl RentACarContractTrait for RentACarContract {
         }
 
         remove_car(env, &owner);
+        crate::events::remove_car::car_removed(env, owner);
         Ok(())
     }
 }
