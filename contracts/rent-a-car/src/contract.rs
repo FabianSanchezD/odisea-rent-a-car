@@ -84,6 +84,10 @@ impl RentACarContractTrait for RentACarContract {
         Ok(car.available_to_withdraw)
     }
 
+    fn get_admin_commission(env: &Env) -> i128 {
+        read_commission(env)
+    }
+
     fn rental(env: &Env, renter: Address, owner: Address, total_days_to_rent: u32, amount: i128) -> Result<(), Error>{
         renter.require_auth();
 

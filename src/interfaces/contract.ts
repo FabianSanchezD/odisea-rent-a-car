@@ -7,6 +7,8 @@ export interface IBaseContractClient {
 }
 
 export interface IRentACarContract extends IBaseContractClient {
+  get_admin: () => Promise<string>;
+  get_admin_commission: () => Promise<number>;
   __constructor: ({
     admin,
     token,
@@ -47,5 +49,13 @@ export interface IRentACarContract extends IBaseContractClient {
   }: {
     owner: string;
     amount: number;
+  }) => Promise<this>;
+
+  payout_admin: ({
+    admin,
+    amount,
+  } : {
+    admin:string;
+    amount:number;
   }) => Promise<this>;
 }

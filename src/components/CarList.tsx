@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { ICar } from "../interfaces/car";
 import { CarStatus } from "../interfaces/car-status";
 import { IRentACarContract } from "../interfaces/contract";
@@ -15,6 +16,30 @@ interface CarsListProps {
 export const CarsList = ({ cars }: CarsListProps) => {
   const { walletAddress, selectedRole, setHashId, setCars } =
     useStellarAccounts();
+
+  const [availableByOwner, setAvailableByOwner] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const fetchAvailable = async () => {
+      if (!walletAddress || cars.length === 0) return;
+      const client = await stellarService.buildClient<IRentACarContract>(walletAddress);
+      const owners = Array.from(new Set(cars.map((c) => c.ownerAddress)));
+      const pairs = await Promise.all(
+        owners.map(async (owner) => {
+          try {
+            const amount = await client.get_available_to_withdraw({ owner });
+            return [owner, amount] as const;
+          } catch {
+            return [owner, 0] as const;
+          }
+        })
+      );
+      const map: Record<string, number> = {};
+      for (const [owner, amount] of pairs) map[owner] = amount;
+      setAvailableByOwner(map);
+    };
+    void fetchAvailable();
+  }, [walletAddress, cars]);
 
   const handleDelete = async (owner: string) => {
     const contractClient =
@@ -99,10 +124,19 @@ export const CarsList = ({ cars }: CarsListProps) => {
 
     if (selectedRole === UserRole.OWNER) {
       const amount = car.pricePerDay * 3 * ONE_XLM_IN_STROOPS;
+      const available = availableByOwner[car.ownerAddress] ?? 0;
+      const disabled = available <= 0 || available < amount || car.status === CarStatus.RENTED;
       return (
         <button
           onClick={() => void handlePayout(car.ownerAddress, amount)}
-          className="px-3 py-1 bg-green-600 text-white rounded font-semibold hover:bg-green-700 transition-colors cursor-pointer"
+          disabled={disabled}
+          className={
+            "px-3 py-1 rounded font-semibold transition-colors " +
+            (disabled
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-green-600 text-white hover:bg-green-700 cursor-pointer")
+          }
+          title={disabled ? "No funds available to withdraw" : undefined}
         >
           Withdraw
         </button>
